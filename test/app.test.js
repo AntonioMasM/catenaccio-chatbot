@@ -8,17 +8,15 @@ const calls = [];
 
 before(async () => {
   const apiSoccer = {
+    async findPlayer(name) {
+      calls.push(name);
+      return {
+        player: { name, age: 38, nationality: "Argentina", position: "Attacker", height: "170 cm", photo: "https://img.test/messi.png" },
+      };
+    },
     async findTeam(name) {
       calls.push(name);
       return { team: { name, country: "Spain", founded: 1902 }, venue: { name: "Bernabéu", city: "Madrid" } };
-    },
-    async getNextMatch(name) {
-      calls.push(name);
-      return {
-        fixture: { date: "2026-10-04T19:00:00+00:00" },
-        league: { name: "La Liga" },
-        teams: { home: { name }, away: { name: "Barcelona" } },
-      };
     },
     async getStandings(name) {
       calls.push(name);
@@ -34,9 +32,20 @@ before(async () => {
       };
     },
   };
+  const footballData = {
+    async getNextMatch(name) {
+      calls.push(name);
+      return {
+        utcDate: "2026-10-04T19:00:00+00:00",
+        competition: { name: "La Liga" },
+        homeTeam: { name },
+        awayTeam: { name: "Barcelona" },
+      };
+    },
+  };
 
   await new Promise((resolve) => {
-    server = createApp({ apiSoccer }).listen(0, "127.0.0.1", () => {
+    server = createApp({ apiSoccer, footballData }).listen(0, "127.0.0.1", () => {
       baseUrl = `http://127.0.0.1:${server.address().port}`;
       resolve();
     });
@@ -63,6 +72,7 @@ test("team.info devuelve los datos del equipo", async () => {
   const { body } = await webhook({ action: "team.info", parameters: { equipo: "Real Madrid" } });
   assert.equal(calls.at(-1), "Real Madrid");
   assert.match(body.fulfillmentText, /fundado en 1902/);
+  assert.equal(body.fulfillmentMessages[1].payload.richResponse.type, "team");
 });
 
 test("team.nextMatch devuelve el siguiente partido", async () => {
@@ -78,9 +88,29 @@ test("league.standings acepta el parámetro competición", async () => {
   assert.equal(body.fulfillmentText, "Clasificación de La Liga, temporada 2026: 1. Real Madrid, 24 puntos; 2. Barcelona, 22 puntos.");
 });
 
+test("player.info busca el parámetro jugador", async () => {
+  const { body } = await webhook({ action: "player.info", parameters: { jugador: "Lionel Messi" } });
+  assert.equal(calls.at(-1), "Lionel Messi");
+  assert.equal(
+    body.fulfillmentText,
+    "Lionel Messi; tiene 38 años; es de nacionalidad Argentina; juega como Attacker; mide 170 cm.",
+  );
+  assert.equal(body.fulfillmentMessages[1].payload.richResponse.type, "player");
+  assert.equal(body.fulfillmentMessages[1].payload.richResponse.imageUrl, "https://img.test/messi.png");
+});
+
 test("una acción pide el parámetro que falta", async () => {
   const { body } = await webhook({ action: "team.nextMatch", parameters: {} });
   assert.equal(body.fulfillmentText, "¿De qué equipo quieres conocer el próximo partido?");
+});
+
+test("Intent-PlayerInformation funciona aunque Dialogflow no envíe action", async () => {
+  const { body } = await webhook({
+    intent: { displayName: "Intent-PlayerInformation" },
+    parameters: { jugador: "Lionel Messi" },
+  });
+  assert.equal(calls.at(-1), "Lionel Messi");
+  assert.match(body.fulfillmentText, /nacionalidad Argentina/);
 });
 
 test("POST /webhook rechaza JSON inválido", async () => {

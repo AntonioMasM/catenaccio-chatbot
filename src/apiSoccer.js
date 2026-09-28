@@ -17,6 +17,25 @@ function errorMessage(errors) {
   return Object.entries(errors ?? {}).map(([key, value]) => `${key}: ${value}`).join("; ");
 }
 
+function normalize(value = "") {
+  return String(value ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+}
+
+function playerScore(result, requestedName) {
+  const player = result.player ?? result;
+  const requested = normalize(requestedName).split(/\s+/);
+  const first = normalize(player.firstname);
+  const last = normalize(player.lastname);
+  const complete = normalize(`${player.firstname ?? ""} ${player.lastname ?? ""}`);
+  const short = normalize(player.name);
+  const firstRequested = requested[0];
+  const lastRequested = requested.at(-1);
+
+  return (first.startsWith(firstRequested) ? 4 : 0)
+    + (last.startsWith(lastRequested) ? 6 : 0)
+    + requested.filter((word) => complete.includes(word) || short.includes(word)).length;
+}
+
 function createApiSoccerClient({ apiKey, fetchImpl = fetch } = {}) {
   async function get(path, parameters = {}) {
     if (!apiKey) throw new ApiSoccerError("API_SOCCER_KEY no está configurada.");
@@ -49,10 +68,11 @@ function createApiSoccerClient({ apiKey, fetchImpl = fetch } = {}) {
     return (await get("/teams", { search: name }))[0] ?? null;
   }
 
-  async function getNextMatch(name) {
-    const result = await findTeam(name);
-    if (!result) return null;
-    return (await get("/fixtures", { team: result.team.id, next: 1 }))[0] ?? null;
+  async function findPlayer(name) {
+    // El buscador de jugadores funciona mejor por apellido; luego resolvemos posibles homónimos.
+    const search = name.trim().split(/\s+/).at(-1);
+    const results = await get("/players/profiles", { search });
+    return results.sort((a, b) => playerScore(b, name) - playerScore(a, name))[0] ?? null;
   }
 
   async function getStandings(name) {
@@ -85,7 +105,7 @@ function createApiSoccerClient({ apiKey, fetchImpl = fetch } = {}) {
     }
   }
 
-  return { findTeam, getNextMatch, getStandings };
+  return { findPlayer, findTeam, getStandings };
 }
 
 module.exports = { ApiSoccerError, createApiSoccerClient };

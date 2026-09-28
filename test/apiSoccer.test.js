@@ -28,16 +28,15 @@ test("findTeam codifica el nombre y autentica la petición", async () => {
   assert.equal(result.team.id, 541);
 });
 
-test("getNextMatch resuelve el equipo y solicita un partido", async () => {
-  const { client, urls } = mockClient(
-    [{ team: { id: 541 } }],
-    [{ fixture: { id: 123 } }],
-  );
-  const match = await client.getNextMatch("Real Madrid");
-  assert.equal(urls[1].pathname, "/fixtures");
-  assert.equal(urls[1].searchParams.get("team"), "541");
-  assert.equal(urls[1].searchParams.get("next"), "1");
-  assert.equal(match.fixture.id, 123);
+test("findPlayer usa el endpoint de perfiles", async () => {
+  const { client, urls } = mockClient([
+    { player: { id: 999, name: "Lionel Messi Nyamsi", firstname: "Lionel Messi", lastname: "Nyamsi" } },
+    { player: { id: 154, name: "L. Messi", firstname: "Lionel Andrés", lastname: "Messi Cuccittini" } },
+  ]);
+  const result = await client.findPlayer("Lionel Messi");
+  assert.equal(urls[0].pathname, "/players/profiles");
+  assert.equal(urls[0].searchParams.get("search"), "Messi");
+  assert.equal(result.player.id, 154);
 });
 
 test("getStandings usa la temporada actual", async () => {

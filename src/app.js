@@ -1,13 +1,28 @@
 const express = require("express");
 const { createActionHandlers } = require("./actions");
 const { createApiSoccerClient } = require("./apiSoccer");
+const { createFootballDataClient } = require("./footballData");
+
+const INTENT_ACTIONS = {
+  "Intent-TeamInformation": "team.info",
+  "Intent-NextMatch": "team.nextMatch",
+  "Intent-Standings": "league.standings",
+  "Intent-PlayerInformation": "player.info",
+};
+
+function resolveAction(queryResult) {
+  return queryResult.action || INTENT_ACTIONS[queryResult.intent?.displayName] || "";
+}
 
 function createApp(options = {}) {
   const app = express();
   const apiSoccer = options.apiSoccer ?? createApiSoccerClient({
     apiKey: options.apiSoccerKey ?? process.env.API_SOCCER_KEY,
   });
-  const actions = createActionHandlers(apiSoccer);
+  const footballData = options.footballData ?? createFootballDataClient({
+    apiKey: options.footballDataKey ?? process.env.FOOTBALL_DATA_API,
+  });
+  const actions = createActionHandlers(apiSoccer, footballData);
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb" }));
@@ -16,8 +31,10 @@ function createApp(options = {}) {
 
   app.post("/webhook", async (request, response) => {
     const queryResult = request.body?.queryResult ?? {};
-    const handler = actions[queryResult.action];
-    console.log(`[Dialogflow] action=${queryResult.action || "sin-action"}`);
+    const intent = queryResult.intent?.displayName ?? "desconocido";
+    const action = resolveAction(queryResult);
+    const handler = actions[action];
+    console.log(`[Dialogflow] intent=${intent} action=${action || "sin-action"}`);
 
     if (!handler) {
       return response.json({
@@ -28,9 +45,17 @@ function createApp(options = {}) {
     }
 
     try {
-      return response.json({ fulfillmentText: await handler(queryResult.parameters) });
+      const result = await handler(queryResult.parameters);
+      if (typeof result === "string") return response.json({ fulfillmentText: result });
+      return response.json({
+        fulfillmentText: result.text,
+        fulfillmentMessages: [
+          { text: { text: [result.text] } },
+          { payload: { richResponse: result.richResponse } },
+        ],
+      });
     } catch (error) {
-      console.error(`[API-SOCCER] ${error.message}`);
+      console.error(`[${action === "team.nextMatch" ? "Football-Data" : "API-SOCCER"}] ${error.message}`);
       return response.json({
         fulfillmentText: "Ahora mismo no puedo consultar la información. Inténtalo de nuevo más tarde.",
       });
@@ -48,4 +73,4 @@ function createApp(options = {}) {
   return app;
 }
 
-module.exports = { createApp };
+module.exports = { createApp, resolveAction };
