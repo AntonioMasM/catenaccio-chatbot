@@ -1,0 +1,36 @@
+.board { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; min-height: 560px; color: #fffef0; }
+.header { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 17px; border: 1px solid #a9d39b; border-radius: 16px; background: #124c31; box-shadow: 4px 5px 0 #0c412a55; }
+.eyebrow { display: block; margin-bottom: 5px; color: #e6f56b; font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.header h2 { margin: 0; font: 800 clamp(25px, 2.6vw, 38px)/1 var(--font-display); }
+.playback { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 9px; border: 1px solid #b8d8a8; border-radius: 50%; color: #e6f56b; background: #1f6240; }
+.playback svg { width: 100%; height: 100%; fill: currentColor; }
+.scene { position: relative; flex: 1; display: block; width: 100%; height: 350px; min-height: 300px; pointer-events: none; }
+.markings { fill: none; stroke: #f8ffdd99; stroke-width: .6; }
+.zone { fill: #e6f56b; fill-opacity: .13; stroke: #e6f56b; stroke-width: .35; stroke-dasharray: 1.5 1.5; }
+.guide { fill: #fff9be; stroke: #fff9be; }
+.guide line { stroke-width: .65; stroke-dasharray: 2 1; }
+.guide text { stroke: none; font-size: 2.6px; font-weight: 800; paint-order: stroke; stroke: #174b31; stroke-width: .7px; }
+.route { color: #f9f5cd; stroke: currentColor; stroke-width: .65; stroke-dasharray: 1.7 1.4; opacity: .85; }
+.run { color: #d8f66c; stroke-dasharray: none; }
+.player, .ball { animation: move 6s ease-in-out infinite; transform: translate(var(--from-x), var(--from-y)); }
+.player circle { stroke-width: .65; filter: drop-shadow(0 .6px .4px #092f2560); }
+.player text { font-family: var(--font-body); font-size: 3px; font-weight: 900; }
+.attack circle { fill: #e6f56b; stroke: #fffeda; }
+.attack text { fill: #164a30; }
+.defence circle { fill: #174b31; stroke: #fffeda; }
+.defence text { fill: #fffeda; }
+.ball { animation-timing-function: linear; }
+.ball circle { fill: #fffef5; stroke: #153f2d; stroke-width: .45; }
+.ball path { fill: #153f2d; }
+.paused .player, .paused .ball { animation-play-state: paused; }
+.bottom { position: relative; z-index: 2; padding: 13px; border: 1px solid #b0d39b; border-radius: 16px; background: #124c31f5; }
+.caption { margin: 0 0 10px; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: #cee6bf; font-size: 9px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { display: inline-block; width: 9px; height: 9px; border: 1px solid #fffeda; border-radius: 50%; }
+.attackDot { background: #e6f56b; }
+.defenceDot { background: #174b31; }
+@keyframes move { 0%, 15%, 100% { transform: translate(var(--from-x), var(--from-y)); } 65%, 99.99% { transform: translate(var(--to-x), var(--to-y)); } }
+@media (prefers-reduced-motion: reduce) { .player, .ball { animation: none; } .playback { display: none; } }
+@media (max-width: 1000px) { .header { padding: 12px; } .bottom { padding: 11px; } }
+@media (max-width: 720px) { .board { min-height: 560px; } .header h2 { font-size: 30px; } }

@@ -1,0 +1,367 @@
+% Memoria completada a partir del proyecto y de la exportación Catenaccio.zip.
+% Codificación UTF-8. Compilador previsto: pdfLaTeX (dos pasadas).
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{array,tabularx,longtable,booktabs}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\setlength{\emergencystretch}{2em}
+\setlist[itemize]{leftmargin=*,itemsep=0.25em,topsep=0.3em}
+\setlist[enumerate]{leftmargin=*,itemsep=0.25em,topsep=0.3em}
+\newcommand{\codigo}[1]{\texttt{\detokenize{#1}}}
+\hypersetup{pdftitle={Catenaccio: asistente conversacional de fútbol},pdfauthor={Antonio Pascual Mas Martínez}}
+
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries Catenaccio\par}
+\vspace{0.8cm}
+{\Large Asistente conversacional sobre el mundo del fútbol\par}
+\vspace{2cm}
+{\large Antonio Pascual Mas Martínez\par}
+\vfill
+Análisis de las Tendencias en Internet\par
+\vspace{0.4cm}
+Máster en Desarrollo de Aplicaciones y Servicios Web\par
+\vspace*{2cm}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Objetivo}
+
+El objetivo principal de este proyecto es desarrollar un asistente conversacional especializado en fútbol, llamado Catenaccio, mediante Dialogflow ES. Su finalidad es facilitar la consulta de información futbolística a través de una conversación en lenguaje natural, ofreciendo una interacción sencilla y accesible para el usuario.
+
+El asistente permite consultar equipos, jugadores, competiciones, clasificaciones y partidos. Además de estas consultas, incorpora estadísticas, comparativas entre dos participantes y previas de encuentros. La información dinámica se obtiene de servicios externos, mientras que las respuestas sociales, los conceptos de fútbol y las opciones de navegación se configuran en el agente.
+
+Los objetivos específicos del proyecto son:
+\begin{itemize}
+\item Reconocer diferentes formas de expresar una solicitud y asociarlas a la intención correspondiente.
+\item Extraer los datos relevantes, como equipos, jugadores, competiciones, temporadas y métricas, utilizando entidades y parámetros.
+\item Solicitar los parámetros obligatorios que falten y mantener la continuidad del diálogo mediante contextos.
+\item Consultar APIs de fútbol y presentar sus resultados con texto, fichas, tablas e imágenes cuando estén disponibles.
+\item Comparar equipos y jugadores bajo criterios explícitos de fuente, competición y temporada, indicando las limitaciones de cobertura.
+\item Ofrecer una interfaz web adaptable a dispositivos móviles, con opciones de navegación y posibilidad de repetir o reiniciar la conversación.
+\end{itemize}
+
+El proyecto combina un agente de Dialogflow ES, un servicio de fulfillment desarrollado con Node.js y Express y una aplicación web con Next.js y React. Dialogflow constituye la fuente de las intenciones, las entidades y las reglas conversacionales. El servidor resuelve las consultas de datos y la web presenta las respuestas recibidas.
+
+El nombre Catenaccio hace referencia a un sistema táctico de fútbol asociado a la organización defensiva. El propio asistente dispone de una respuesta sobre el significado de su nombre, reforzando así su identidad temática.
+
+\section{Tareas}
+
+Las tareas implementadas se agrupan en los siguientes bloques:
+\begin{itemize}
+\item \textbf{Información de equipos:} obtener la ficha de un club, incluyendo nombre, país, año de fundación y datos del estadio cuando el proveedor los facilita. La ficha puede incluir el escudo del equipo.
+\item \textbf{Partidos y resultados de equipos:} consultar el siguiente encuentro programado y hasta diez resultados finalizados, ordenados del más reciente al más antiguo. Los resultados pueden filtrarse por temporada y competición.
+\item \textbf{Plantillas:} mostrar todos los jugadores disponibles, agrupados por posición y con sus dorsales y nacionalidades cuando existen. Esta representación no constituye una alineación titular.
+\item \textbf{Estadísticas de equipos:} consultar puntos, partidos, victorias, empates, derrotas, goles a favor y en contra y diferencia de goles, según la cobertura disponible. La entidad de métricas de equipo contiene siete valores seleccionables; los partidos también forman parte de los datos devueltos por el backend.
+\item \textbf{Previas:} presentar el próximo encuentro y hasta cinco resultados recientes de cada participante. Los indicadores de victoria, empate y derrota se calculan a partir de los marcadores conocidos.
+\item \textbf{Información de jugadores:} consultar perfiles de futbolistas con fotografía y datos como edad, nacionalidad, posición, altura o peso cuando están disponibles.
+\item \textbf{Estadísticas de jugadores:} consultar goles, asistencias, partidos y minutos, así como goles y asistencias por cada 90 minutos cuando existen datos suficientes para calcularlos.
+\item \textbf{Información de competiciones:} mostrar nombre, ámbito, formato, temporada, jornada y fechas disponibles, junto con el emblema de la competición.
+\item \textbf{Clasificaciones y resultados de competiciones:} mostrar todas las filas y grupos de la clasificación y hasta diez encuentros finalizados. Las clasificaciones incluyen puntos, partidos y estadísticas de resultados y goles.
+\item \textbf{Comparativas:} comparar dos equipos o dos jugadores, permitiendo modificar los participantes, la métrica, la competición o la temporada durante la conversación. En jugadores se puede alternar entre totales y valores por 90 minutos.
+\item \textbf{Conceptos de fútbol:} explicar fútbol, fuera de juego, presión, posesión, contraataque, bloque bajo, formaciones, goles esperados, criterios de comparación y normalización por 90 minutos. Explicar los goles esperados no implica que exista una consulta estadística de esa métrica.
+\item \textbf{Interacción social y ayuda:} saludar, despedirse, agradecer, presentarse, explicar las capacidades del asistente y responder a preguntas sobre su autor, finalidad, disponibilidad o privacidad mediante textos predefinidos.
+\item \textbf{Gestión del diálogo:} ofrecer menús, resolver consultas incompletas, reutilizar información contextual, repetir la última respuesta y cancelar o reiniciar una conversación.
+\end{itemize}
+
+Las consultas dependen de los datos y permisos de los proveedores. Por ello, una entidad reconocida por Dialogflow no garantiza que su información esté disponible en la API. El asistente diferencia los datos ausentes de los valores cero y comunica las restricciones de cobertura, autenticación o cuota.
+
+\section{Flujo conversacional}
+
+\subsection{Inicio y navegación}
+
+Al abrir la aplicación web se crea o recupera un identificador de sesión y se envía el evento \codigo{WELCOME} a Dialogflow. El intent \codigo{sistema.bienvenida} devuelve una presentación y cinco categorías: equipos, jugadores, competiciones, comparativas y conceptos de fútbol.
+
+El usuario puede escribir directamente una consulta o utilizar las opciones del menú. Los chips envían su texto y los botones con eventos envían el nombre y los parámetros recibidos. La interfaz no mantiene un catálogo alternativo de intenciones: es Dialogflow quien interpreta cada entrada y decide la respuesta.
+
+El recorrido general de una consulta es:
+\begin{enumerate}
+\item El usuario envía un mensaje o selecciona una opción en la web.
+\item El servidor de Next.js envía el texto o evento a \codigo{detectIntent} con la sesión y el idioma.
+\item Dialogflow reconoce la intención, extrae sus parámetros y aplica los contextos activos.
+\item Si falta un parámetro obligatorio, el agente formula una pregunta para completarlo.
+\item Una intención estática responde desde Dialogflow. Una intención de datos invoca el webhook con su acción y parámetros.
+\item Express consulta las fuentes de fútbol, prepara la respuesta y la devuelve a Dialogflow.
+\item Next.js recibe el resultado y la web representa el texto y los payloads enriquecidos.
+\end{enumerate}
+
+\subsection{Consultas directas y recogida de parámetros}
+
+Una solicitud como «Háblame del Real Madrid» activa \codigo{equipo.info}, extrae el parámetro \codigo{equipo} y ejecuta la acción \codigo{team.info}. Si se solicita «Quiero información de un equipo», el parámetro obligatorio no está completo y Dialogflow pregunta qué equipo se desea consultar. La llamada de datos se realiza cuando la información necesaria está disponible.
+
+La exportación también conserva un flujo guiado específico: \codigo{menu.buscar_equipo} pregunta qué equipo se quiere buscar y activa \codigo{esperando_equipo} durante cinco turnos. Con ese contexto, \codigo{respuesta.equipo} interpreta el nombre recibido y ejecuta \codigo{team.info}. Este flujo no configura los mismos contextos de salida que las intenciones principales de equipos; el seguimiento general está definido en las familias de consulta descritas a continuación.
+
+\subsection{Continuidad y cambio de participante}
+
+Las consultas principales establecen un contexto de participante y otro de tipo de consulta. Por ejemplo, \codigo{equipo.info} activa \codigo{equipo_activo} durante cinco turnos y \codigo{consulta_equipo_info} durante tres. Las intenciones de seguimiento requieren el contexto del participante; las de cambio requieren el de la consulta concreta.
+
+Así, después de consultar al Real Madrid, «¿Y cuándo juega?» puede activar \codigo{equipo.proximo_partido.seguimiento}. El parámetro de equipo toma como valor por defecto \codigo{#equipo_activo.equipo}. Tras una consulta del próximo partido, «¿Y Barcelona?» puede activar la variante de cambio y realizar la misma operación con otro equipo.
+
+La misma estructura se aplica a jugadores y competiciones mediante \codigo{jugador_activo} y \codigo{competicion_activo}. Al entrar en una nueva familia de datos se desactivan contextos incompatibles con duración cero, reduciendo la posibilidad de reutilizar un participante de otro tema. Las duraciones de los contextos se expresan en turnos, no en segundos.
+
+\subsection{Comparativas y refinamiento}
+
+Las comparativas empiezan con \codigo{comparar.equipos.iniciar} o \codigo{comparar.jugadores.iniciar}. Ambos participantes son obligatorios; si falta uno, Dialogflow lo solicita. La métrica, la temporada y la competición pueden introducirse en la petición inicial o en turnos posteriores.
+
+Los contextos \codigo{comparacion_equipos} y \codigo{comparacion_jugadores}, de cinco turnos, conservan los parámetros para permitir refinamientos. Las variantes \codigo{cambiar_a} y \codigo{cambiar_b} sustituyen un participante; las variantes \codigo{metrica}, \codigo{temporada} y \codigo{competicion} modifican el criterio correspondiente. En jugadores, \codigo{normalizar} cambia entre totales y valores por 90 minutos.
+
+Si no se indica temporada, la selección de una comparación de jugadores busca una temporada común accesible. El backend incorpora el año resuelto a los contextos activos que ya contienen el campo \codigo{temporada}, manteniendo sus nombres y duraciones. Si el usuario solicita un año concreto, ese año se respeta y no se sustituye silenciosamente por otro.
+
+\subsection{Ejemplos de diálogo}
+
+Los siguientes ejemplos ilustran el flujo previsto; las respuestas de datos dependen de las APIs y no representan resultados deportivos verificados en esta memoria.
+
+\begin{description}[leftmargin=0cm,style=nextline]
+\item[Consulta y seguimiento]
+Usuario: «Háblame del Real Madrid».\\
+Asistente: devuelve la ficha disponible del club.\\
+Usuario: «¿Y cuándo juega?».\\
+Asistente: consulta el siguiente partido del equipo guardado en contexto.\\
+Usuario: «¿Y Barcelona?».\\
+Asistente: realiza la misma consulta para el nuevo equipo.
+\item[Parámetro incompleto]
+Usuario: «Quiero información de un equipo».\\
+Asistente: «¿Qué equipo quieres consultar?».\\
+Usuario: «Liverpool».\\
+Asistente: devuelve la información disponible del equipo.
+\item[Comparativa refinada]
+Usuario: «Compara a Messi y Cristiano en goles en 2023/2024».\\
+Asistente: consulta ambos jugadores en el mismo año y fuente; devuelve los datos o explica la limitación.\\
+Usuario: «Por 90 minutos».\\
+Asistente: mantiene los participantes y la temporada y calcula la métrica si dispone de minutos válidos.
+\end{description}
+
+\subsection{Fallback, repetición y reinicio}
+
+El agente incluye un fallback general y dos específicos para las comparativas de equipos y jugadores. Estas respuestas orientan al usuario cuando no se reconoce una petición dentro del flujo. Las preguntas fuera del ámbito del fútbol tienen también una intención específica.
+
+La acción \codigo{session.repeat} permite repetir la respuesta anterior. Para los datos, el webhook utiliza un contexto técnico llamado \codigo{ultimo_resultado}, con duración de veinte turnos y texto inferior a 12\,000 bytes. La ruta web conserva también la respuesta completa y sus payloads para poder repetir menús y fichas, con una caducidad de treinta minutos y un máximo de 250 sesiones por proceso.
+
+Las intenciones de cancelación y reinicio utilizan \codigo{session.reset} y configuran el borrado de contextos en Dialogflow. La web elimina su recuerdo de la última respuesta al recibir esa acción. El webhook dispone asimismo de lógica de limpieza para esa acción si llega a recibirla. El botón «Nueva conversación» genera un identificador diferente y vuelve a enviar \codigo{WELCOME}.
+
+\section{Intenciones}
+
+\subsection{Organización del agente}
+
+La exportación aportada contiene \textbf{109 intenciones}, \textbf{447 frases de entrenamiento en español} y \textbf{siete entidades personalizadas}. De las intenciones, 48 tienen el webhook activado y tres están marcadas como fallback. Estos recuentos describen el ZIP analizado; el agente remoto puede cambiar posteriormente.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l r X@{}}
+\toprule
+\textbf{Familia} & \textbf{Cantidad} & \textbf{Finalidad}\\
+\midrule
+\codigo{general.*} & 37 & Interacción social, ayuda, identidad, repetición y reinicio.\\
+\codigo{equipo.*} & 18 & Seis consultas, cada una con inicio, seguimiento y cambio.\\
+\codigo{jugador.*} & 6 & Información y estadísticas, con seguimiento y cambio.\\
+\codigo{competicion.*} & 9 & Información, clasificación y resultados, con seguimiento y cambio.\\
+\codigo{comparar.*} & 15 & Comparación de equipos y jugadores, refinamientos y fallback.\\
+\codigo{futbol.*} & 10 & Explicaciones de conceptos y criterios futbolísticos.\\
+\codigo{navegacion.*} & 6 & Menú principal y cinco categorías.\\
+\codigo{sistema.*} & 3 & Bienvenida, cancelación y fallback general.\\
+\codigo{menu.*}, \codigo{respuesta.*} & 2 & Búsqueda guiada de equipo.\\
+\codigo{Intent-*} & 3 & Intenciones adicionales de afirmación, saludo y nombre.\\
+\midrule
+\textbf{Total} & \textbf{109} & \\
+\bottomrule
+\end{tabularx}
+\caption{Distribución de las intenciones del agente exportado.}
+\end{table}
+
+Las familias de datos siguen una nomenclatura coherente: la intención base recibe una petición independiente, \codigo{seguimiento} reutiliza al participante activo y \codigo{cambiar} mantiene el tipo de consulta y sustituye al participante. Distintas intenciones pueden compartir la misma acción del backend.
+
+\subsection{Acciones de consulta}
+
+\begin{longtable}{@{}p{0.35\linewidth}p{0.59\linewidth}@{}}
+\toprule
+\textbf{Acción} & \textbf{Parámetros utilizados}\\
+\midrule\endhead
+\codigo{team.info} & \codigo{equipo}.\\
+\codigo{team.nextMatch} & \codigo{equipo}.\\
+\codigo{team.results} & \codigo{equipo}, \codigo{temporada}, \codigo{competicion}.\\
+\codigo{team.squad} & \codigo{equipo}.\\
+\codigo{team.stats} & \codigo{equipo}, \codigo{temporada}, \codigo{competicion}, \codigo{metrica_equipo}.\\
+\codigo{preview.start} & \codigo{equipo}.\\
+\codigo{player.info} & \codigo{jugador}.\\
+\codigo{player.stats} & \codigo{jugador}, \codigo{temporada}, \codigo{competicion}, \codigo{metrica_jugador}.\\
+\codigo{league.info} & \codigo{competicion}.\\
+\codigo{league.standings} & \codigo{competicion}, \codigo{temporada}.\\
+\codigo{league.results} & \codigo{competicion}, \codigo{temporada}.\\
+\codigo{compare.teams} & \codigo{equipo_a}, \codigo{equipo_b}, \codigo{metrica_equipo}, \codigo{temporada}, \codigo{competicion}.\\
+\codigo{compare.players} & \codigo{jugador_a}, \codigo{jugador_b}, \codigo{metrica_jugador}, \codigo{temporada}, \codigo{competicion}, \codigo{criterio_comparacion}.\\
+\bottomrule
+\caption{Acciones de datos despachadas por el webhook.}\\
+\end{longtable}
+
+Los participantes son obligatorios en los intents iniciales. Los parámetros de filtrado suelen ser opcionales, pero pasan a ser obligatorios en las intenciones de refinamiento que los solicitan. La repetición y el reinicio utilizan las acciones técnicas \codigo{session.repeat} y \codigo{session.reset}.
+
+\subsection{Entidades y sinónimos}
+
+Las entidades personalizadas convierten expresiones del usuario en valores canónicos. Los catálogos del ZIP contienen:
+
+\begin{longtable}{@{}p{0.31\linewidth}r p{0.56\linewidth}@{}}
+\toprule
+\textbf{Entidad} & \textbf{Valores} & \textbf{Uso}\\
+\midrule\endhead
+\codigo{@equipo} & 59 & Equipos y alias. Por ejemplo, denominaciones habituales de clubes.\\
+\codigo{@jugador} & 137 & Futbolistas y variantes de sus nombres.\\
+\codigo{@competicion} & 45 & Ligas, copas y otras competiciones.\\
+\codigo{@temporada} & 41 & Temporadas y diferentes formas de expresar el mismo año inicial.\\
+\codigo{@metrica_equipo} & 7 & Puntos, goles a favor, goles en contra, victorias, empates, derrotas y diferencia de goles.\\
+\codigo{@metrica_jugador} & 6 & Goles, asistencias, partidos, minutos, goles por 90 y asistencias por 90.\\
+\codigo{@criterio_comparacion} & 2 & \codigo{totales} y \codigo{por_90}.\\
+\bottomrule
+\caption{Entidades personalizadas de la exportación.}\\
+\end{longtable}
+
+El backend normaliza las temporadas: \codigo{2023/2024}, \codigo{2023-2024}, \codigo{2023/24} y \codigo{2023} se convierten al año inicial 2023. Rechaza las temporadas con años no consecutivos. También adapta los nombres a los catálogos de cada proveedor mediante normalización y equivalencias independientes de las entidades del agente.
+
+Las frases de entrenamiento incluyen peticiones completas, expresiones breves y seguimientos. En \codigo{equipo.info} aparecen, por ejemplo, «Háblame del Real Madrid», «Información del Barcelona» y «Quiero información de un equipo». Las anotaciones vinculan los fragmentos relevantes con las entidades y los parámetros. Los contextos permiten interpretar frases breves como «¿Y cuándo juega?» sin exigir que se repita el nombre del equipo.
+
+\subsection{Respuestas estáticas y contenido enriquecido}
+
+Las intenciones de navegación, conceptos y conversación social utilizan respuestas definidas en Dialogflow. Varias incluyen alternativas de texto y payloads \codigo{richContent} con información, chips y botones. Los intents de datos contienen textos de reserva para el caso de que no se obtenga una respuesta del servicio.
+
+El proyecto no carga el ZIP del agente durante la ejecución ni reproduce su catálogo en el código. La exportación sirve para revisar o importar la configuración; el agente alojado en Dialogflow es quien decide las intenciones, los parámetros y los contextos utilizados en cada conversación.
+
+\section{Despliegue}
+
+\subsection{Arquitectura y entorno de ejecución}
+
+El despliegue documentado utiliza Dialogflow ES en Google Cloud, un backend Express local y una web Next.js local. Un túnel ngrok proporciona una URL HTTPS pública para que Dialogflow pueda invocar el webhook. Esta configuración permite demostrar el proyecto sin alojar permanentemente el backend en un servidor público.
+
+El backend escucha por defecto en el puerto 3000 y la web de desarrollo en el 3001. El proyecto requiere Node.js 22.18 o superior. Las versiones declaradas en los archivos de dependencias incluyen Express 5.2.1, Next.js 16.3.6 y React 19.3.0; son las versiones del proyecto analizado.
+
+\subsection{Configuración}
+
+El backend utiliza un archivo \codigo{.env} con las siguientes variables:
+\begin{itemize}
+\item \codigo{PORT}: puerto del servidor Express.
+\item \codigo{NGROK_AUTHTOKEN}: credencial para abrir el túnel.
+\item \codigo{API_SOCCER_KEY}: clave del proveedor API-SOCCER/API-FOOTBALL.
+\item \codigo{FOOTBALL_DATA_API}: token de Football-Data.
+\end{itemize}
+
+La aplicación web utiliza \codigo{web/.env.local}. Las variables \codigo{DIALOGFLOW_PROJECT_ID} y \codigo{DIALOGFLOW_LANGUAGE_CODE} identifican el proyecto y el idioma, que en esta implementación es español. Con \codigo{DIALOGFLOW_AUTH_MODE=adc}, el cliente utiliza las credenciales predeterminadas de Google y omite las variables de clave privada.
+
+Para el desarrollo, una cuenta con acceso al agente se autentica mediante:
+\begin{verbatim}
+gcloud auth application-default login
+gcloud auth application-default set-quota-project catenaccio-sqkl
+\end{verbatim}
+
+También existe soporte para las variables \codigo{GOOGLE_CLIENT_EMAIL} y \codigo{GOOGLE_PRIVATE_KEY} cuando no se fuerza el modo ADC y ambas están configuradas. Las credenciales permanecen en el servidor y no se publican mediante variables \codigo{NEXT_PUBLIC_*}. Esta memoria no incorpora valores de claves ni tokens.
+
+\subsection{Arranque e integración del webhook}
+
+Desde la raíz del proyecto se instalan las dependencias:
+\begin{verbatim}
+npm install
+npm --prefix web install
+\end{verbatim}
+
+A continuación se abren tres terminales independientes y se ejecuta un comando en cada una:
+\begin{verbatim}
+npm start
+npm run tunnel
+npm run web:dev
+\end{verbatim}
+
+El primer comando inicia Express; el segundo crea el túnel y muestra su URL pública; el tercero inicia la web en \url{http://localhost:3001}. En la consola de Dialogflow, en Fulfillment, se activa el webhook y se establece la URL HTTPS actual del túnel terminada en \codigo{/webhook}. Las intenciones que consultan datos deben tener activado el fulfillment y configurada su acción.
+
+La URL del túnel se comprueba en cada arranque. Express y ngrok deben permanecer activos para resolver las consultas externas. Si el servidor se inicia con \codigo{npm start}, se reinicia después de modificar el código; \codigo{npm run dev} permite recargarlo automáticamente.
+
+La ruta \codigo{/health} permite comprobar que el proceso Express responde. Esta comprobación no valida por sí sola las credenciales de Google ni la conexión con las APIs de fútbol.
+
+\subsection{Compilación de la web y límites del despliegue}
+
+La web se puede compilar y servir con:
+\begin{verbatim}
+npm run web:build
+npm --prefix web run start -- -p 3001
+\end{verbatim}
+
+El esquema analizado corresponde a una ejecución local expuesta mediante túnel. Un despliegue permanente requeriría alojar los servicios, configurar sus identidades y mantener una URL pública estable. La repetición enriquecida se almacena en memoria del proceso web, por lo que varias réplicas necesitarían un almacenamiento compartido si se desea conservarla entre instancias. Estas medidas se plantean como evolución del despliegue, no como características ya implantadas.
+
+\section{Fulfillment y conexión}
+
+\subsection{Contrato entre Dialogflow y Express}
+
+El endpoint \codigo{POST /webhook} recibe un cuerpo JSON con la sesión y \codigo{queryResult}. El servidor lee \codigo{queryResult.action} para seleccionar el manejador y \codigo{queryResult.parameters} para obtener los valores de consulta. El despacho se basa en la acción, por lo que no necesita conocer todos los nombres de intents.
+
+Dialogflow resuelve los valores canónicos y los parámetros por defecto de contexto. El backend descarta parámetros vacíos y campos terminados en \codigo{.original}; no los sustituye por catálogos locales del agente. Si falta un participante, los manejadores disponen también de preguntas de reserva.
+
+El webhook devuelve \codigo{fulfillmentText}, \codigo{fulfillmentMessages} y, cuando procede, \codigo{outputContexts}. En consultas dinámicas sustituye el texto de reserva por el resultado, incorpora la ficha disponible y conserva los mensajes no textuales recibidos del agente. Para una acción sin manejador de datos, conserva el contenido de Dialogflow.
+
+Los contextos recibidos se conservan con sus nombres y duraciones, limitados a la sesión correspondiente. El backend solo introduce el contexto técnico de repetición y completa parámetros resueltos, como la temporada seleccionada, en contextos que ya contienen esos campos.
+
+\subsection{Conexión con los proveedores}
+
+Se utilizan dos servicios externos:
+\begin{itemize}
+\item \textbf{Football-Data:} API v4, disponible en \url{https://api.football-data.org/v4}. Actúa como primera fuente para calendario, resultados, competiciones, clasificaciones y plantillas. Sus tablas de goleadores se utilizan también para goles, asistencias y partidos de jugadores cuando tienen cobertura.
+\item \textbf{API-SOCCER/API-FOOTBALL:} API v3, disponible en \url{https://v3.football.api-sports.io}. Proporciona perfiles de equipos y jugadores y amplía la cobertura de otras consultas. Se utiliza para minutos y métricas por 90 cuando están disponibles.
+\end{itemize}
+
+Football-Data se intenta primero para las operaciones cubiertas por el adaptador común. Cuando faltan datos o existe una restricción de acceso o recurso expresada mediante 403/404, se puede recurrir a API-SOCCER. Los errores de autenticación 401 y de cuota 429 se comunican sin ocultarlos mediante un cambio automático de fuente.
+
+La búsqueda de futbolistas evalúa el nombre completo y prioriza coincidencias exactas. Los nombres ambiguos requieren una identificación más precisa. Las fotografías pueden obtenerse de API-SOCCER aunque las métricas procedan de Football-Data; ello no implica mezclar estadísticas de dos fuentes en una comparación.
+
+\subsection{Criterios de cálculo y calidad de los datos}
+
+Las comparativas de equipos mantienen una fuente y competición comunes. Los puntos se obtienen de clasificaciones y nunca se estiman. En copas sin tabla, el proveedor alternativo permite consultar estadísticas agregadas de partidos y goles; los puntos permanecen como no disponibles.
+
+Las comparativas de jugadores mantienen ambos participantes en una fuente y año comunes. Sin competición explícita, la consulta a API-SOCCER utiliza ligas de clubes y enumera el ámbito disponible. En Football-Data se realiza una búsqueda acotada en tablas de goleadores de La Liga, Premier League, Bundesliga, Serie A y Ligue 1. La ausencia de un jugador en una tabla limitada no se interpreta como cero goles ni como un resumen completo de su actividad.
+
+En API-SOCCER, cuando no se indica año, se cruzan las temporadas disponibles de ambos jugadores y se busca la última común accesible, con un máximo de cuatro intentos. El código interpreta las restricciones de temporada comunicadas por el proveedor, sin fijar los años permitidos como constantes. Si se solicita una temporada explícita y no es accesible, se informa de la limitación.
+
+La normalización por minutos utiliza la expresión:
+\[
+\text{valor por 90 minutos}=\frac{\text{total}\times 90}{\text{minutos jugados}}.
+\]
+El cálculo requiere un total conocido y minutos mayores que cero. Si se agregan varias participaciones, se suman sus totales y minutos antes de calcular el ratio. Un dato desconocido permanece desconocido; no se convierte en cero. Los valores numéricos se presentan con formato español y las fechas de los partidos con la zona horaria \codigo{Europe/Madrid}.
+
+Las previas muestran calendario y forma reciente calculada de los resultados. No generan pronósticos de victoria. Las limitaciones de plan, disponibilidad y periodo se incorporan a las respuestas para que el usuario pueda interpretar correctamente las comparativas.
+
+\subsection{Presentación en la aplicación web}
+
+La ruta \codigo{POST /api/chat} de Next.js utiliza el cliente oficial \codigo{@google-cloud/dialogflow} y realiza una llamada \codigo{detectIntent} por envío. Reutiliza el cliente, establece un timeout de diez segundos y desactiva los reintentos automáticos. Valida los mensajes, de uno a 500 caracteres, los identificadores de sesión y la estructura de los eventos antes de realizar la consulta.
+
+La respuesta de Dialogflow se transforma en texto, nombre de intención, acción y payloads personalizados. La web representa \codigo{richContent} genérico y estructuras específicas \codigo{richResponse}. Cuando ambas expresan el mismo contenido, prioriza la ficha específica y evita duplicaciones. El campo \codigo{responseText} identifica el texto cubierto por la ficha; si la estructura no se reconoce, el texto sigue disponible.
+
+La interfaz muestra fichas de equipos y jugadores, tablas de clasificación y comparativas, tarjetas de partidos y resultados y bloques de estadísticas. En escritorio, la consulta de plantilla sustituye temporalmente a la mascota del panel lateral por un campo con todos los jugadores agrupados por posición. En pantallas de hasta 720 píxeles, la plantilla se presenta dentro del chat. La siguiente respuesta o una nueva conversación devuelve la mascota al panel.
+
+Las tablas permiten desplazamiento horizontal en móvil, las imágenes conservan sus proporciones y los valores ausentes mantienen su indicación. Las respuestas aparecen completas al recibirse, sin temporizadores de escritura. Los textos y opciones conversacionales proceden del agente y de los resultados del webhook.
+
+\subsection{Rendimiento y tratamiento de errores}
+
+Los proveedores mantienen cachés de datos públicos y agrupan peticiones iguales que ya están en curso. En API-SOCCER, los perfiles de equipos y jugadores se conservan una hora, las ligas 24 horas, las estadísticas de jugadores diez minutos y los partidos y tablas un minuto. Football-Data conserva catálogos 24 horas y peticiones de datos un minuto. Los errores no se almacenan como respuestas válidas.
+
+Cada petición de proveedor tiene un timeout de 1,8 segundos y el webhook aplica un presupuesto de respuesta de 4,2 segundos. Una consulta sin caché, especialmente si requiere varias búsquedas o un cambio de proveedor, puede agotar ese presupuesto. En ese caso se devuelve una explicación de fallo de consulta, sin fabricar un resultado.
+
+Express limita el cuerpo JSON a un megabyte y responde con estado 400 cuando el JSON es inválido. La ruta web responde con errores de validación para entradas incorrectas y con estado 503 cuando no puede consultar Dialogflow. Los mensajes de datos distinguen restricciones de consulta y errores de proveedor cuando el adaptador dispone de esa información.
+
+\subsection{Validación del proyecto}
+
+La batería automatizada se ejecutó al elaborar esta memoria: \codigo{npm test} completó \textbf{85 pruebas, todas satisfactorias}. Las pruebas utilizan datos y respuestas simuladas para verificar acciones, parámetros, contextos, selección de temporada, cálculos, conservación de ceros y nulos, fallback de fuentes y presentación del contenido enriquecido.
+
+También comprueban el recorrido entre las respuestas del webhook y los componentes de la web, la conservación de escudos y fotografías, las plantillas completas y la ausencia de duplicaciones de opciones o fichas. Este resultado verifica la implementación con los casos de prueba disponibles; no garantiza la disponibilidad permanente de los servicios externos.
+
+La documentación del repositorio recoge comprobaciones previas con el agente real de bienvenida, menú de equipos, repetición y reinicio. Durante la elaboración de esta memoria no se volvió a ejecutar esa conexión remota. Para revisar la interfaz y su compilación, el proyecto proporciona además \codigo{npm --prefix web run lint} y \codigo{npm run web:build}; esos comandos no forman parte del resultado de 85 pruebas citado.
+
+La comprobación completa del despliegue requiere mantener activos Express, ngrok y Next.js, configurar la URL del webhook y probar consultas desde la web con credenciales válidas. Debe incluir una consulta directa, otra con parámetros incompletos, un seguimiento, una comparativa refinada y un caso de dato no disponible.
+
+\end{document}
