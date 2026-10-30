@@ -72,6 +72,10 @@ Guarda en **Dialogflow → Fulfillment → Webhook** la URL HTTPS del túnel ter
 
 ## Consultas de datos
 
+Las comparativas de jugadores y equipos muestran un duelo visual en el panel lateral, con fotos o escudos, barras animadas y cifras. En móvil, el duelo aparece dentro de la respuesta del chat. Los cambios de participante, métrica o competición actualizan el duelo al llegar la siguiente respuesta. Una sola métrica se destaca con un borde propio. Cada pareja de barras usa una escala independiente; los datos ausentes se indican como no disponibles y los ceros se conservan. Para diferencias de goles negativas, las barras representan magnitudes y las cifras conservan su signo. No se calcula una puntuación global. La animación respeta la preferencia de movimiento reducido.
+
+El webhook envía `playerComparison` o `teamComparison` como `richResponse`, incluyendo temporada, ámbito, fuente y notas de cobertura. La vista no realiza peticiones adicionales. Las imágenes ausentes se sustituyen por iniciales. Los cambios se activan con los intents de comparativa existentes, sin modificar Dialogflow.
+
 Equipos y jugadores, próximos partidos, resultados, plantillas, previas, competiciones, clasificaciones, estadísticas y comparativas por métrica y temporada. Football-Data es la primera fuente de tablas, partidos y competiciones; API-SOCCER amplía su cobertura y proporciona perfiles y estadísticas de jugadores.
 
 Las comparativas de equipos usan una competición y una fuente comunes; las copas sin clasificación utilizan estadísticas agregadas y no inventan puntos. Las de jugadores consultan siempre la temporada actual de Football-Data, enumeran las ligas incluidas y actualizan ese año en el contexto. Las demás consultas respetan una temporada solicitada. Los valores ausentes se conservan como no disponibles; cuotas, autenticación y cobertura se comunican por separado. Los nombres de proveedores se adaptan sin copiar entidades de Dialogflow.

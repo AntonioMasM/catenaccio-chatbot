@@ -7,6 +7,7 @@ import ChatHeader from './components/ChatHeader';
 import SquadPitch, { squadFromResponse } from './components/SquadPitch';
 import TacticalBoard from './components/TacticalBoard';
 import MatchLineupPitch, { lineupFromResponse } from './components/MatchLineupPitch';
+import ComparisonDuel, { comparisonFromResponse } from './components/ComparisonDuel';
 import { conceptFromQuestion, type ConceptId } from '../lib/tactics';
 import { requestChat, chatError, type ChatInput } from "../lib/chat";
 import type { ChatResponse } from "../lib/dialogflow";
@@ -33,6 +34,7 @@ export default function Home() {
   const lastResponse = messages.findLast((message) => message.role === 'assistant');
   const squad = lastResponse ? squadFromResponse(lastResponse.text, lastResponse.customPayloads) : null;
   const lineup = lastResponse ? lineupFromResponse(lastResponse.customPayloads) : null;
+  const comparison = lastResponse ? comparisonFromResponse(lastResponse.customPayloads) : null;
 
   useEffect(() => {
     let stored: string | null = null;
@@ -92,9 +94,9 @@ export default function Home() {
   return (
     <main className={`appShell ${loading ? "isThinking" : ""}`}>
       <div className="chatLayout">
-        <aside className={`stadiumPanel ${conceptId ? 'hasTactics' : squad ? 'hasSquad' : lineup ? 'hasLineup' : ''}`} aria-label={conceptId ? 'Pizarra táctica' : squad ? `Plantilla de ${squad.title}` : lineup ? 'Onces del último partido' : 'Campo de fútbol'}>
+        <aside className={`stadiumPanel ${conceptId ? 'hasTactics' : comparison ? 'hasDuel' : squad ? 'hasSquad' : lineup ? 'hasLineup' : ''}`} tabIndex={comparison ? 0 : undefined} aria-label={conceptId ? 'Pizarra táctica' : comparison ? 'Comparativa visual' : squad ? `Plantilla de ${squad.title}` : lineup ? 'Onces del último partido' : 'Campo de fútbol'}>
           <div className="pitchLines" aria-hidden="true"><span className="pitchCenter" /><span className="pitchBox pitchBoxTop" /><span className="pitchBox pitchBoxBottom" /></div>
-          {conceptId ? <TacticalBoard key={conceptId} selectedId={conceptId} /> : squad ? <SquadPitch card={squad} /> : lineup ? <MatchLineupPitch lineup={lineup} /> : null}
+          {conceptId ? <TacticalBoard key={conceptId} selectedId={conceptId} /> : comparison ? <ComparisonDuel key={lastResponse?.id} card={comparison} /> : squad ? <SquadPitch card={squad} /> : lineup ? <MatchLineupPitch lineup={lineup} /> : null}
         </aside>
         <section className="chat" aria-label="Chat con Catenaccio">
           <ChatHeader loading={loading} canReset={!loading && Boolean(sessionId)} onReset={resetConversation} />

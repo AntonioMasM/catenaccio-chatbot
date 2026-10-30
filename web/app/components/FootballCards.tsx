@@ -1,5 +1,6 @@
 import { SquadSummary, readSquadCard, squadFromText, type SquadCard } from './SquadPitch';
 import MatchLineupPitch, { readMatchLineup, type MatchLineup } from './MatchLineupPitch';
+import ComparisonDuel, { readComparisonCard, type ComparisonCard } from './ComparisonDuel';
 
 export type Field = { label: string; value: string | number };
 export type ProfileCard = { type: 'player' | 'team' | 'profile'; title: string; imageUrl?: string; imageAlt?: string; fields: Field[] };
@@ -14,9 +15,8 @@ export type ResultMatch = { utcDate?: string; date?: string; homeTeam: Team; awa
 export type ResultsCard = { type: 'results'; title: string; logo?: string; season?: string | number; teamId?: string | number; matches: ResultMatch[]; latestLineup?: MatchLineup };
 export type TeamStatsCard = { type: 'teamStats'; title: string; competition: string; season: string | number; logo?: string; metrics: { label: string; value: Value }[]; notes?: string[] };
 export type PlayerStatsCard = Omit<TeamStatsCard, 'type'> & { type: 'playerStats'; imageUrl?: string };
-type ComparedPlayer = { name: string; imageUrl?: string; competition?: string };
-export type PlayerComparisonCard = { type: 'playerComparison'; title: string; season: string | number; scope: string; source: string; first: ComparedPlayer; second: ComparedPlayer; metrics: { label: string; first: Value; second: Value }[]; notes?: string[]; conclusion?: string };
-export type FootballCard = ProfileCard | LeagueCard | MatchCard | StandingsCard | TableCard | ResultsCard | SquadCard | TeamStatsCard | PlayerStatsCard | PlayerComparisonCard;
+export type PlayerComparisonCard = ComparisonCard & { type: 'playerComparison' };
+export type FootballCard = ProfileCard | LeagueCard | MatchCard | StandingsCard | TableCard | ResultsCard | SquadCard | TeamStatsCard | PlayerStatsCard | PlayerComparisonCard | ComparisonCard;
 export const asRecord = (value: unknown): Record<string, unknown> => value && typeof value === 'object' ? value as Record<string, unknown> : {};
 export const asText = (value: unknown) => typeof value === 'string' ? value : '';
 const display = (value: Value) => value == null ? '—' : typeof value === 'number' ? value.toLocaleString('es-ES', { maximumFractionDigits: 2 }) : value;
@@ -25,16 +25,13 @@ const scalar = (value: unknown): value is string | number => typeof value === 's
 // Solo adapta la estructura recibida para presentarla; no consulta ni genera contenido.
 export function readFootballCard(value: unknown): FootballCard | null {
   const card = asRecord(value);
+  const comparison = readComparisonCard(value);
+  if (comparison) return comparison;
   const squad = readSquadCard(value);
   if (squad) return squad;
   if ((card.type === 'teamStats' || card.type === 'playerStats') && typeof card.title === 'string' && typeof card.competition === 'string' && scalar(card.season)
     && Array.isArray(card.metrics) && card.metrics.length > 0 && card.metrics.every((metric) => typeof asRecord(metric).label === 'string' && (asRecord(metric).value == null || scalar(asRecord(metric).value)))
     && (card.notes == null || Array.isArray(card.notes) && card.notes.every((note) => typeof note === 'string'))) return value as TeamStatsCard | PlayerStatsCard;
-  if (card.type === 'playerComparison' && typeof card.title === 'string' && scalar(card.season) && typeof card.scope === 'string' && typeof card.source === 'string'
-    && typeof asRecord(card.first).name === 'string' && typeof asRecord(card.second).name === 'string'
-    && Array.isArray(card.metrics) && card.metrics.length > 0 && card.metrics.every((metric) => typeof asRecord(metric).label === 'string' && [asRecord(metric).first, asRecord(metric).second].every((value) => value == null || scalar(value)))
-    && (card.notes == null || Array.isArray(card.notes) && card.notes.every((note) => typeof note === 'string'))
-    && (card.conclusion == null || typeof card.conclusion === 'string')) return value as PlayerComparisonCard;
   if (card.type === 'results' && typeof card.title === 'string' && Array.isArray(card.matches)
     && card.matches.every((value) => {
       const match = asRecord(value);
@@ -65,7 +62,7 @@ export default function FootballCardView({ card }: { card: FootballCard }) {
   if (card.type === 'results') return <Results card={card} />;
   if (card.type === 'squad') return <SquadSummary card={card} />;
   if (card.type === 'teamStats' || card.type === 'playerStats') return <Stats card={card} />;
-  if (card.type === 'playerComparison') return <PlayerComparison card={card} />;
+  if (card.type === 'playerComparison' || card.type === 'teamComparison') return <><div className="duelMobile"><ComparisonDuel card={card} /></div><div className="duelChatSummary"><PlayerComparison card={card} /></div></>;
   if (card.type === 'dataTable') return <article className="footballCard footballTableCard">
     <CardHeader title={card.title} subtitle={card.subtitle} />
     <div className="footballScroll" tabIndex={0} role="region" aria-label={card.title}><table><thead><tr>{card.columns.map((column, index) => <th scope="col" key={index}>{column}</th>)}</tr></thead>
@@ -108,13 +105,13 @@ function Stats({ card }: { card: TeamStatsCard | PlayerStatsCard }) {
     {!!card.notes?.length && <footer className="teamStatsNotes">{card.notes.map((note, index) => <p key={index}>{note}</p>)}</footer>}
   </article>;
 }
-function PlayerComparison({ card }: { card: PlayerComparisonCard }) {
+function PlayerComparison({ card }: { card: ComparisonCard }) {
   return <article className="footballCard playerComparisonCard">
     <CardHeader title={card.title} subtitle={`Temporada ${card.season} · ${card.source}`} />
     <p className="playerComparisonScope">{card.scope}</p>
     <div className="footballScroll" tabIndex={0} role="region" aria-label={`Comparativa de ${card.first.name} y ${card.second.name}`}><table>
       <thead><tr><th scope="col">Métrica</th>{[card.first, card.second].map((player, index) => <th scope="col" key={index}><div className="comparedPlayer">
-        {player.imageUrl && <img src={player.imageUrl} alt={`Foto de ${player.name}`} loading="lazy" />}<strong>{player.name}</strong>{player.competition && card.first.competition !== card.second.competition && <small>{player.competition}</small>}
+        <strong>{player.name}</strong>{player.competition && card.first.competition !== card.second.competition && <small>{player.competition}</small>}
       </div></th>)}</tr></thead>
       <tbody>{card.metrics.map((metric, index) => <tr key={index}><th scope="row">{metric.label}</th><td>{display(metric.first)}</td><td>{display(metric.second)}</td></tr>)}</tbody>
     </table></div>

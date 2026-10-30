@@ -22,8 +22,48 @@ function loadComponent(filename) {
 const DialogflowContent = loadComponent('web/app/components/DialogflowContent.tsx').default;
 const FormattedReply = loadComponent('web/app/components/FormattedReply.tsx').default;
 const AssistantResponse = loadComponent('web/app/components/AssistantResponse.tsx').default;
+const { default: ComparisonDuel, comparisonFromResponse, numericMetric } = loadComponent('web/app/components/ComparisonDuel.tsx');
 const payload = { richContent: [[{ type: 'info', title: 'Título del agente', subtitle: 'Contenido del agente' },
   { type: 'chips', options: [{ text: 'Opción recibida' }, { text: 'Otra opción', event: { name: 'REMOTE_EVENT', parameters: { equipo: 'Real Madrid' } } }] }]] };
+
+test('el duelo conserva ceros y ausencias y representa valores negativos sin anchos negativos', () => {
+  const card = { type: 'teamComparison', title: 'Comparativa de equipos', season: 2026, scope: 'LaLiga', source: 'Football-Data',
+    first: { name: 'Equipo A' }, second: { name: 'Equipo B' }, metrics: [
+      { label: 'Goles', first: 0, second: null }, { label: 'Diferencia de goles', first: -3, second: 6 },
+    ] };
+  assert.equal(numericMetric(null), null);
+  assert.equal(numericMetric('No disponible'), null);
+  assert.equal(numericMetric(''), null);
+  assert.equal(numericMetric('0'), 0);
+  assert.equal(numericMetric('1,5'), 1.5);
+  assert.equal(comparisonFromResponse([{ richResponse: { ...card, metrics: [] } }]), null);
+  assert.equal(comparisonFromResponse([{ richResponse: card }]).type, 'teamComparison');
+  const html = renderToStaticMarkup(React.createElement(ComparisonDuel, { card }));
+  assert.match(html, /No disponible/);
+  assert.match(html, /<strong>0<\/strong>/);
+  assert.match(html, /width:50%/);
+  assert.doesNotMatch(html, /width:-|NaN|Infinity/);
+  assert.match(html, /valor absoluto/);
+  assert.match(html, /Football-Data/);
+});
+
+test('la comparativa de equipos lleva escudos, fuente, temporada y notas del webhook al duelo', async () => {
+  const { createFootballActions } = require('../src/footballActions');
+  const team = (name, crest, goals) => ({ name, crest, competition: 'LaLiga', season: 2026, metrics: { goles_favor: goals } });
+  const actions = createFootballActions({}, { getTeamComparison: async () => ({ first: team('A', 'https://img.test/a.png', 0), second: team('B', 'https://img.test/b.png', 3), source: 'Football-Data', scope: 'LaLiga', selectionNote: 'Periodo común comprobado.' }) });
+  const result = await actions['compare.teams']({ equipo_a: 'A', equipo_b: 'B', competicion: 'LaLiga', metrica_equipo: 'goles_favor' });
+  const card = comparisonFromResponse([{ richResponse: result.richResponse }]);
+  assert.equal(card.first.imageUrl, 'https://img.test/a.png');
+  assert.equal(card.second.imageUrl, 'https://img.test/b.png');
+  assert.equal(card.metrics[0].first, 0);
+  assert.equal(card.metrics[0].second, 3);
+  assert.deepEqual(card.notes, ['Periodo común comprobado.']);
+  const html = renderToStaticMarkup(React.createElement(AssistantResponse, { text: result.text, payloads: [{ richResponse: card }], onSend: async () => {}, disabled: false }));
+  assert.match(html, /Duelo de equipos/);
+  assert.match(html, /Escudo de A/);
+  assert.match(html, /duelFocused/);
+  assert.match(html, /2026/);
+});
 
 test('solo se renderizan los elementos recibidos y cada opción aparece una vez', () => {
   const html = renderToStaticMarkup(React.createElement(DialogflowContent, { payload, onSend: async () => {}, disabled: false }));

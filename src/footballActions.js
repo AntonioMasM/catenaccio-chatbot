@@ -76,9 +76,17 @@ function createFootballActions(apiSoccer, footballData) {
         : `\n${(lower ? difference < 0 : difference > 0) ? first.name : second.name} tiene ${lower ? 'un menor' : 'un mayor'} valor en ${labels[metric].toLowerCase()}.`;
     }
     const text = `Comparativa de ${first.name} y ${second.name}, temporada ${first.season}:\nÁmbito: ${pair.scope || first.competition}.\n${summary}${conclusion}\nFuente: ${pair.source || first.source || 'Proveedor configurado'}.${!player && pair.selectionNote ? `\n${pair.selectionNote}` : ''}`;
-    const response = player ? cardResponse(text, playerComparisonCard(pair,
-      metrics.map((key) => ({ label: labels[key], first: first.metrics[key] ?? null, second: second.metrics[key] ?? null })), conclusion)) : { text };
-    return pair.automatic ? { ...response, parameters: { temporada: String(first.season) } } : player ? response : text;
+    const comparisonCard = playerComparisonCard(pair,
+      metrics.map((key) => ({ label: labels[key], first: first.metrics[key] ?? null, second: second.metrics[key] ?? null })), conclusion);
+    if (!player) {
+      comparisonCard.type = 'teamComparison';
+      comparisonCard.title = 'Comparativa de equipos';
+      comparisonCard.first.imageUrl = first.crest || first.logo || '';
+      comparisonCard.second.imageUrl = second.crest || second.logo || '';
+    }
+    comparisonCard.notes = [pair.selectionNote || '', pair.periods ? `Periodo: ${pair.periods}.` : ''].filter(Boolean);
+    const response = cardResponse(text, comparisonCard);
+    return pair.automatic ? { ...response, parameters: { temporada: String(first.season) } } : response;
   }
   return {
     'team.results': async (parameters) => {

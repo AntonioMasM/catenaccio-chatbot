@@ -511,3 +511,50 @@ button:disabled { cursor: default; opacity: .55; }
   .squadMobile .squadRoster { max-height: 480px; }
 }
 @media (max-width: 420px) { .resultTeam { flex-direction: column; } .resultTeam:last-child { flex-direction: column; } .resultsCard .previewResult { padding: 12px; } }
+
+/* Comparative data shares one scale within each pair, never across metrics. */
+.stadiumPanel.hasDuel { padding: 18px; max-height: calc(100dvh - 52px); min-height: 550px; overflow-y: auto; background: #103d2d; }
+.hasDuel > .pitchLines { display: none; }
+.comparisonDuel { width: 100%; min-width: 0; position: relative; border: 1px solid #ffffff26; border-radius: 20px; color: #f7f8e9; background: radial-gradient(ellipse at 50% 0%,#346548 0,transparent 60%),#103d2d; overflow: hidden; }
+.duelHeading { padding: 24px 18px 0; text-align: center; }
+.duelHeading > span { color: #d8ed79; text-transform: uppercase; font-size: 10px; font-weight: 800; letter-spacing: .22em; }
+.duelHeading h2 { margin: 8px 0; font: 800 clamp(22px,2.5vw,34px)/1.1 var(--font-display); color: #fffdeb; }
+.duelHeading p { margin: 0; color: #bed3c1; font-size: 11px; }
+.duelParticipants { position: relative; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 34px; padding: 26px 16px 12px; }
+.duelParticipant { min-width: 0; text-align: center; }
+.duelPortrait { width: clamp(65px,8vw,105px); height: clamp(65px,8vw,105px); margin: 0 auto 12px; border-radius: 50%; border: 2px solid #e5f584; background: #ffffff0c; display: grid; place-items: center; overflow: hidden; box-shadow: 0 0 25px #dbed7620; }
+.duelSide1 .duelPortrait { border-color: #79d4e6; box-shadow: 0 0 25px #79d4e620; }
+.duelPortrait img { width: 86%; height: 86%; object-fit: contain; }
+.duelPortrait span { font: 800 25px var(--font-display); color: #e5f584; }
+.duelSide1 .duelPortrait span { color: #79d4e6; }
+.duelParticipant h3 { margin: 0; font: 800 16px/1.25 var(--font-display); overflow-wrap: anywhere; }
+.duelParticipant small { display: block; margin-top: 6px; color: #bed3c1; font-size: 10px; }
+.duelVersus { position: absolute; left: 50%; top: 65px; transform: translateX(-50%); color: #bad0b3; font: italic 900 17px var(--font-display); }
+.duelScope { padding: 0 22px 16px; margin: 0; color: #bed3c1; text-align: center; font-size: 11px; line-height: 1.5; }
+.duelMetrics { padding: 0 16px 8px; display: grid; gap: 10px; }
+.duelMetric { padding: 13px; background: #ffffff07; border: 1px solid #ffffff12; border-radius: 12px; }
+.duelFocused { border-color: #e5f58466; background: #e5f5840c; }
+.duelMetric h3 { margin: 0 0 9px; text-align: center; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #d7e3d4; }
+.duelValues { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.duelValues strong { color: #e5f584; font: 800 clamp(16px,2.5vw,29px)/1.2 var(--font-display); }
+.duelValues strong:last-child { color: #79d4e6; text-align: right; }
+.duelTracks { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 6px; margin-top: 9px; }
+.duelTrack { height: 8px; background: #ffffff13; border-radius: 3px; overflow: hidden; display: flex; justify-content: flex-end; }
+.duelTrack.duelSide1 { justify-content: flex-start; }
+.duelTrack i { display: block; height: 100%; background: #e5f584; transform-origin: right; animation: duelGrow .65s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--duel-delay,0ms); }
+.duelTrack.duelSide1 i { background: #79d4e6; transform-origin: left; }
+.duelMissing { background: repeating-linear-gradient(135deg,#ffffff08 0 4px,#ffffff20 4px 6px); }
+.duelMetricNote { margin: 8px 0 0; font-size: 10px; text-align: center; line-height: 1.5; color: #bed3c1; }
+.duelConclusion { margin: 6px 16px 16px; padding: 12px; border-radius: 10px; color: #edf5bc; background: #ffffff09; font-size: 12px; line-height: 1.6; }
+.duelFooter { display: grid; gap: 5px; padding: 14px 18px; border-top: 1px solid #ffffff16; font-size: 10px; color: #bed3c1; line-height: 1.5; }
+.duelFooter p { margin: 0; }
+.duelMobile { display: none; }
+@keyframes duelGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .duelTrack i { animation: none; } }
+@media (max-width: 720px) {
+  .duelMobile { display: block; }
+  .duelChatSummary { display: none; }
+  .duelHeading h2 { font-size: 25px; }
+  .duelPortrait { width: 76px; height: 76px; }
+  .duelValues strong { font-size: 22px; }
+}

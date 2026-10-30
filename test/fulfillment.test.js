@@ -59,7 +59,7 @@ test('las acciones de datos funcionan sin catálogo y conservan el contenido rec
         fulfillmentMessages: [{ text: { text: ['Texto de reserva'] } }, menu], outputContexts: contexts });
       assert.ok(response.fulfillmentText, action);
       assert.doesNotMatch(response.fulfillmentText, /Ahora mismo no puedo|Texto de reserva/, action);
-      const cardTypes = { 'team.info': 'team', 'team.nextMatch': 'nextMatch', 'team.results': 'results', 'team.squad': 'squad', 'team.stats': 'teamStats', 'preview.start': 'nextMatch', 'player.info': 'player', 'player.stats': 'playerStats', 'compare.players': 'playerComparison', 'league.info': 'league', 'league.standings': 'standings', 'league.results': 'results' };
+      const cardTypes = { 'team.info': 'team', 'team.nextMatch': 'nextMatch', 'team.results': 'results', 'team.squad': 'squad', 'team.stats': 'teamStats', 'preview.start': 'nextMatch', 'player.info': 'player', 'player.stats': 'playerStats', 'compare.players': 'playerComparison', 'compare.teams': 'teamComparison', 'league.info': 'league', 'league.standings': 'standings', 'league.results': 'results' };
       const generated = response.fulfillmentMessages.filter((message) => message.payload?.richResponse);
       assert.equal(generated.length, cardTypes[action] ? 1 : 0, action);
       if (cardTypes[action]) {
